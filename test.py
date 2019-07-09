@@ -1,15 +1,17 @@
 #!/Library/Frameworks/Python.framework/Versions/2.7/bin/python2.7
 
-# m x n, m = 3, n = 2
-# iterate n first, m second
+import pygame
+import sys
 
-a = [[0] * 3 for i in range(2)]
-a[0][1] = 5
+pygame.init()
 
-print(a)
+pygame.display.set_mode((500, 500))
 
-for i in range(2):
-	for j in range(3):
-		print(a[i][j])
-	print('')
+while True:
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			pygame.quit()
+			sys.exit()
 
+		if event.type == pygame.MOUSEBUTTONDOWN:
+			print(event.button)
