@@ -1,3 +1,6 @@
+""" prevent clicking outside of map boundaries when screensize > mapsize """
+
+
 #!/Library/Frameworks/Python.framework/Versions/2.7/bin/python2.7
 
 import pygame
@@ -30,17 +33,20 @@ class MapEditor:
 	TILESIZE = 40
 	SCREENWIDTH = TILESIZE * 15
 	SCREENHEIGHT = TILESIZE * 12
-	MAPWIDTH = TILESIZE * 20
-	MAPHEIGHT = TILESIZE * 16
+	MAPWIDTH = TILESIZE * 50
+	MAPHEIGHT = TILESIZE * 50
+	FPS = 90
 
 	def __init__(self):
-		self.screen = pygame.display.set_mode((MapEditor.SCREENWIDTH, MapEditor.SCREENHEIGHT))
+		# self.screen = pygame.display.set_mode((MapEditor.SCREENWIDTH, MapEditor.SCREENHEIGHT))
+		self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 		self.my_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
 		self.metadata = [[0] * (self.my_map.get_width() / MapEditor.TILESIZE) for i in range(self.my_map.get_height() / MapEditor.TILESIZE)]
 		self.tiles = self.get_tiles()
 		self.curr_tile = 1
 		
 		self.camera = Camera(self.screen.get_size(), self.my_map.get_size())
+		self.clock = pygame.time.Clock()
 
 	def get_tiles(self):
 		tiles = list()
@@ -61,7 +67,11 @@ class MapEditor:
 					sys.exit()
 
 				elif event.type == pygame.KEYDOWN:
-					if event.key == pygame.K_1:
+					if event.key == pygame.K_ESCAPE:
+						pygame.quit()
+						sys.exit()
+
+					elif event.key == pygame.K_1:
 						self.curr_tile = (self.curr_tile + 1) % len(self.tiles)
 						if not self.curr_tile:
 							self.curr_tile += 1
@@ -80,35 +90,35 @@ class MapEditor:
 						self.my_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
 						self.metadata = [[0] * (self.my_map.get_width() / MapEditor.TILESIZE) for i in range(self.my_map.get_height() / MapEditor.TILESIZE)]
 
-					elif event.key == pygame.K_w:
-						self.camera.move(0, -1)
+			keys = pygame.key.get_pressed()
+			if keys[pygame.K_w]:
+				self.camera.move(0, -1)
+			if keys[pygame.K_a]:
+				self.camera.move(-1, 0)
+			if keys[pygame.K_s]:
+				self.camera.move(0, 1)
+			if keys[pygame.K_d]:
+				self.camera.move(1, 0)
+				
+			if pygame.mouse.get_pressed()[0]:
+				coord = list(pygame.mouse.get_pos())
+				coord[0] -= self.camera.pos[0]
+				coord[1] -= self.camera.pos[1]
+				coord = self.mouse_to_coord(coord)
+				self.my_map.blit(self.tiles[self.curr_tile], coord)
+				x = coord[0] / 40
+				y = coord[1] / 40
+				self.metadata[y][x] = self.curr_tile
 
-					elif event.key == pygame.K_a:
-						self.camera.move(-1, 0)
-
-					elif event.key == pygame.K_s:
-						self.camera.move(0, 1)
-
-					elif event.key == pygame.K_d:
-						self.camera.move(1, 0)
-
-				elif event.type == pygame.MOUSEBUTTONDOWN:
-					coord = list(pygame.mouse.get_pos())
-					coord[0] -= self.camera.pos[0]
-					coord[1] -= self.camera.pos[1]
-					coord = self.mouse_to_coord(coord)
-
-					if event.button == 1:	
-						self.my_map.blit(self.tiles[self.curr_tile], coord)
-						x = coord[0] / 40
-						y = coord[1] / 40
-						self.metadata[y][x] = self.curr_tile
-
-					elif event.button == 3:
-						self.my_map.blit(self.tiles[0], coord)
-						x = coord[0] / 40
-						y = coord[1] / 40
-						self.metadata[y][x] = 0
+			elif pygame.mouse.get_pressed()[2]:
+				coord = list(pygame.mouse.get_pos())
+				coord[0] -= self.camera.pos[0]
+				coord[1] -= self.camera.pos[1]
+				coord = self.mouse_to_coord(coord)
+				self.my_map.blit(self.tiles[0], coord)
+				x = coord[0] / 40
+				y = coord[1] / 40
+				self.metadata[y][x] = 0
 					
 			self.screen.blit(self.my_map, self.camera.pos)
 
@@ -118,6 +128,7 @@ class MapEditor:
 			self.screen.blit(self.tiles[self.curr_tile], coord)
 
 			pygame.display.flip()
+			self.clock.tick(MapEditor.FPS)
 
 
 if __name__ == '__main__':
