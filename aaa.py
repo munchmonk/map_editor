@@ -24,6 +24,9 @@ class Camera:
 
 		self.setup(screen_size, map_size)
 
+	def reset(self):
+		self.pos = [0, 0]
+
 	def setup(self, screen_size, map_size):
 		self.maxwidth = -(map_size[0] - screen_size[0]) if map_size[0] > screen_size[0] else 0
 		self.maxheight = -(map_size[1] - screen_size[1]) if map_size[1] > screen_size[1] else 0
@@ -130,10 +133,10 @@ class Util:
 
 class MapEditor:
 	TILESIZE = 40
-	SCREENWIDTH = TILESIZE * 5
-	SCREENHEIGHT = TILESIZE * 5
-	MAPWIDTH = TILESIZE * 7
-	MAPHEIGHT = TILESIZE * 7
+	SCREENWIDTH = TILESIZE * 7
+	SCREENHEIGHT = TILESIZE * 7
+	MAPWIDTH = TILESIZE * 6
+	MAPHEIGHT = TILESIZE * 6
 	FPS = 90
 
 	def __init__(self):
@@ -186,6 +189,8 @@ class MapEditor:
 		with open(os.path.join(os.path.dirname(__file__), 'metadata.p'), 'wb') as out_file:
 			pickle.dump(self.my_metadata, out_file)
 
+		print('Map saved successfully.')
+
 	def load(self):
 		# Load metadata and adjust to size of loaded map
 		with open(os.path.join(os.path.dirname(__file__), 'metadata.p'), 'rb') as in_file:
@@ -220,6 +225,9 @@ class MapEditor:
 
 		# Update camera
 		self.camera.setup(self.screen.get_size(), self.my_map.get_size())
+		self.camera.reset()
+
+		print('Map loaded successfully.')
 
 	def clear(self):
 		self.my_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
@@ -404,7 +412,7 @@ class MapEditor:
 
 		# Preview current tile at cursor position
 		coord = self.util.round_down_coords(list(pygame.mouse.get_pos()))
-		if self.util.is_coord_within_map_bounds(coord):
+		if self.util.is_coord_within_map_bounds(coord) and pygame.mouse.get_focused():
 			self.screen.blit(self.curr_tile, coord)
 
 		pygame.display.flip()

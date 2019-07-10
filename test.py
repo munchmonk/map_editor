@@ -6,4 +6,13 @@ import os
 import sys
 
 
-tiles = [tile for tile in os.listdir(subfolder) if tile[-4:] == '.jpg']
+pygame.init()
+
+s = pygame.display.set_mode((500, 500))
+
+while True:
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			pygame.quit()
+			sys.exit()
+	print(pygame.mouse.get_focused())
