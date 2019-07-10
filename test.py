@@ -6,9 +6,4 @@ import os
 import sys
 
 
-old = [0, 1, 2, 3]
-new = [5, 7, 3, 3, 7, 8, 6, 1]
-diff = len(new) - len(old)
-tent = new[:-diff]
-print(tent)
-
+tiles = [tile for tile in os.listdir(subfolder) if tile[-4:] == '.jpg']

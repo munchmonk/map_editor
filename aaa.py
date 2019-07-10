@@ -7,11 +7,7 @@
 
 	TODO:
 	potentially allow for manual metadata override
-	NOTE: no sanity checks at all on metadata files for now
 
-	--------------
-	Design choice: loading a bigger/smaller map will resize the current workspace instead of restraining the map loaded
-	--------------
 """
 
 import pygame
@@ -82,6 +78,7 @@ class Util:
 
 			try:
 				with open(os.path.join(subfolder, 'metadata.txt'), 'r') as metadata_file:
+					tot_entries = 0
 
 					for line in metadata_file:
 						text = line.split()
@@ -89,13 +86,28 @@ class Util:
 						# Avoids empty lines
 						if text:
 							tileset.append(text)
+							tot_entries += 1
+					
+					# Sanity check #1 - numbers of tiles and entries in the metadata file must match
+					tot_tiles = len([tile for tile in os.listdir(subfolder) if tile[-4:] == '.jpg'])
+					if tot_tiles > tot_entries:
+						print('ERROR: not enough metadata entries for tileset {}. Aborting.'.format(subfolder))
+						self.quit()
+					elif tot_tiles < tot_entries:
+						print('ERROR: too many metadata entries for tileset {}. Aborting.'.format(subfolder))
+						self.quit()
 						
 			except IOError:
-				print('Error: no metadata file for tileset {}'.format(subfolder))
+				print('Error: no metadata file for tileset {}. Aborting.'.format(subfolder))
 
 			# Replaces the file names with the actual images
 			for entry in tileset:
-				entry[0] = pygame.image.load(os.path.join(subfolder, entry[0]))
+				try:
+					entry[0] = pygame.image.load(os.path.join(subfolder, entry[0]))
+				except pygame.error:
+					# Sanity check #2: all entries in the metadata file must correspond to a tile
+					print('ERROR: no tile found matching metadata entry {}. Aborting.'.format(entry[0]))
+					self.quit()
 
 			tilesets.append(tileset)
 
