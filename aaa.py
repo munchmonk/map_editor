@@ -5,13 +5,15 @@
 	dynamically enlarge/shrink map
 	tag metadata (e.g. WALKABLE, OBSTACLE, etc.)
 	potentially let user add metadata only (over existing tiles)
-	load tilesets from different folders
 	tile randomiser among tileset
+	specify tileset and tile in metadata - at the moment it does not differentiate!
+	change input to improve experience, potentially add joystick support
 """
 
 import pygame
 import sys
 import pickle
+import os
 
 
 class Camera:
@@ -52,20 +54,38 @@ class Util:
 		# Converts coordinates to indexes
 		return coord[0] / MapEditor.TILESIZE, coord[1] / MapEditor.TILESIZE
 
-	def get_tiles(self):
-		tiles = list()
-		tiles.append(pygame.image.load('tile0.jpg'))
-		tiles.append(pygame.image.load('tile1.jpg'))
-		tiles.append(pygame.image.load('tile2.jpg'))
-		return tiles
+	def initialise_tilesets(self):
+		tilesets = list()
+
+		folder_path = os.path.dirname(__file__)
+		target_path = "tilesets"
+		tilesets_path = os.path.join(folder_path, target_path)
+
+		subfolders = [x[0] for x in os.walk(tilesets_path)]
+
+		for subfolder in subfolders:
+			tileset = list()
+			tiles = [tile for tile in os.listdir(subfolder) if tile[-4:] == '.jpg']
+			for tile in tiles:
+				tileset.append(pygame.image.load(os.path.join(subfolder, tile)))
+			if tileset:
+				tilesets.append(tileset)
+
+		return tilesets
+
+	def initialise_blank_tile(self):
+		folder_path = os.path.dirname(__file__)
+		img_path = os.path.join(folder_path, "blank.jpg")
+		return pygame.image.load(img_path)
+
 
 
 class MapEditor:
 	TILESIZE = 40
-	SCREENWIDTH = TILESIZE * 5
-	SCREENHEIGHT = TILESIZE * 5
-	MAPWIDTH = TILESIZE * 4
-	MAPHEIGHT = TILESIZE * 4
+	SCREENWIDTH = TILESIZE * 10
+	SCREENHEIGHT = TILESIZE * 10
+	MAPWIDTH = TILESIZE * 15
+	MAPHEIGHT = TILESIZE * 15
 	FPS = 90
 
 	def __init__(self):
@@ -77,8 +97,13 @@ class MapEditor:
 		
 		self.my_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
 		self.metadata = [[0] * (self.my_map.get_width() / MapEditor.TILESIZE) for i in range(self.my_map.get_height() / MapEditor.TILESIZE)]
-		self.tiles = self.util.get_tiles()
-		self.curr_tile = 1
+
+		self.tilesets = self.util.initialise_tilesets()
+		self.curr_tileset_index = 0
+		self.curr_tileset = self.tilesets[self.curr_tileset_index]
+		self.curr_tile_index = 0
+		self.curr_tile = self.curr_tileset[self.curr_tile_index]
+		self.blank_tile = self.util.initialise_blank_tile()
 
 		self.camera = Camera(self.screen.get_size(), self.my_map.get_size())
 		self.clock = pygame.time.Clock()
@@ -97,9 +122,16 @@ class MapEditor:
 
 				# 1 - change tile
 				elif event.key == pygame.K_1:
-					self.curr_tile = (self.curr_tile + 1) % len(self.tiles)
-					if not self.curr_tile:
-						self.curr_tile += 1
+					self.curr_tile_index = (self.curr_tile_index + 1) % len(self.curr_tileset)
+					self.curr_tile = self.curr_tileset[self.curr_tile_index]
+
+				# 2 - change tileset
+				elif event.key == pygame.K_2:
+					self.curr_tileset_index = (self.curr_tileset_index + 1) % len(self.tilesets)
+					self.curr_tileset = self.tilesets[self.curr_tileset_index]
+
+					# Reset index to 0 in case new tileset is smaller than previous one - avoids index out of range
+					self.curr_tile = self.curr_tileset[0]
 
 				# K - save
 				elif event.key == pygame.K_k:
@@ -143,9 +175,9 @@ class MapEditor:
 			if not self.is_coord_within_map_bounds(coord):
 				return
 
-			self.my_map.blit(self.tiles[self.curr_tile], coord)
+			self.my_map.blit(self.curr_tile, coord)
 			x, y = self.util.coord_to_index(coord)
-			self.metadata[y][x] = self.curr_tile
+			self.metadata[y][x] = self.curr_tile_index
 
 		# Right click - erase
 		elif pygame.mouse.get_pressed()[2]:
@@ -154,7 +186,7 @@ class MapEditor:
 			if not self.is_coord_within_map_bounds(coord):
 				return
 
-			self.my_map.blit(self.tiles[0], coord)
+			self.my_map.blit(self.blank_tile, coord)
 			x, y = self.util.coord_to_index(coord)
 			self.metadata[y][x] = 0
 
@@ -165,7 +197,7 @@ class MapEditor:
 		# Preview current tile at cursor position
 		coord = self.util.round_down_coords(list(pygame.mouse.get_pos()))
 		if self.is_coord_within_map_bounds(coord):
-			self.screen.blit(self.tiles[self.curr_tile], coord)
+			self.screen.blit(self.curr_tile, coord)
 
 		pygame.display.flip()
 
