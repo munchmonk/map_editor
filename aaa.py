@@ -3,7 +3,6 @@
 
 """ 
 	NEXT UP:
-	tile randomiser among tileset
 
 	TODO:
 	potentially allow for manual metadata override
@@ -14,6 +13,7 @@ import pygame
 import sys
 import pickle
 import os
+import random
 
 
 class Camera:
@@ -154,6 +154,7 @@ class MapEditor:
 		self.curr_tileset = self.tilesets[self.curr_tileset_index]
 		self.curr_tile_index = 0
 		self.curr_tile = self.curr_tileset[self.curr_tile_index][0]
+		self.random_tile_mode = False
 		
 		self.blank_tile = self.util.initialise_blank_tile()
 
@@ -182,6 +183,10 @@ class MapEditor:
 
 	def prev_tile(self):
 		self.curr_tile_index = (self.curr_tile_index - 1) % len(self.curr_tileset)
+		self.curr_tile = self.curr_tileset[self.curr_tile_index][0]
+
+	def random_tile(self):
+		self.curr_tile_index = random.randrange(len(self.curr_tileset))
 		self.curr_tile = self.curr_tileset[self.curr_tile_index][0]
 
 	def save(self):
@@ -335,6 +340,10 @@ class MapEditor:
 				elif event.key == pygame.K_q:
 					self.prev_tileset()
 
+				# F - toggle randomiser
+				elif event.key == pygame.K_f:
+					self.random_tile_mode = not self.random_tile_mode
+
 				# 9 - insert row
 				elif event.key == pygame.K_9:
 					self.insert_row()	
@@ -390,6 +399,9 @@ class MapEditor:
 
 			if not self.util.is_coord_within_map_bounds(coord):
 				return
+
+			if self.random_tile_mode:
+				self.random_tile()
 
 			self.my_map.blit(self.curr_tile, coord)
 			x, y = self.util.coord_to_index(coord)

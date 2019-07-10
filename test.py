@@ -4,15 +4,11 @@
 import pygame
 import os
 import sys
+import random
 
 
-pygame.init()
 
-s = pygame.display.set_mode((500, 500))
 
-while True:
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			pygame.quit()
-			sys.exit()
-	print(pygame.mouse.get_focused())
+for i in range(20):
+	print(random.randrange(3))
+
