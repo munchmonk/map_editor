@@ -3,12 +3,15 @@
 
 """ 
 	NEXT UP:
-	dynamically enlarge/shrink map
+	tile randomiser among tileset
 
 	TODO:
 	potentially allow for manual metadata override
-	tile randomiser among tileset
 	NOTE: no sanity checks at all on metadata files for now
+
+	--------------
+	Design choice: loading a bigger/smaller map will resize the current workspace instead of restraining the map loaded
+	--------------
 """
 
 import pygame
@@ -20,6 +23,12 @@ import os
 class Camera:
 	def __init__(self, screen_size, map_size):
 		self.pos = [0, 0]
+		self.maxwidth = 0
+		self.maxheight = 0
+
+		self.setup(screen_size, map_size)
+
+	def setup(self, screen_size, map_size):
 		self.maxwidth = -(map_size[0] - screen_size[0]) if map_size[0] > screen_size[0] else 0
 		self.maxheight = -(map_size[1] - screen_size[1]) if map_size[1] > screen_size[1] else 0
 
@@ -109,10 +118,10 @@ class Util:
 
 class MapEditor:
 	TILESIZE = 40
-	SCREENWIDTH = TILESIZE * 12
-	SCREENHEIGHT = TILESIZE * 12
-	MAPWIDTH = TILESIZE * 40
-	MAPHEIGHT = TILESIZE * 40
+	SCREENWIDTH = TILESIZE * 5
+	SCREENHEIGHT = TILESIZE * 5
+	MAPWIDTH = TILESIZE * 7
+	MAPHEIGHT = TILESIZE * 7
 	FPS = 90
 
 	def __init__(self):
@@ -166,13 +175,127 @@ class MapEditor:
 			pickle.dump(self.my_metadata, out_file)
 
 	def load(self):
-		self.my_map = pygame.image.load(os.path.join(os.path.dirname(__file__), 'map.jpeg'))
+		# Load metadata and adjust to size of loaded map
 		with open(os.path.join(os.path.dirname(__file__), 'metadata.p'), 'rb') as in_file:
-			self.my_metadata = pickle.load(in_file)
+			old_data = self.my_metadata
+			new_data = pickle.load(in_file)
+
+			# Loaded data has more rows than current one: add more rows
+			if len(new_data) > len(old_data):
+				diff = len(new_data) - len(old_data)
+				MapEditor.MAPHEIGHT += diff * MapEditor.TILESIZE
+
+			# Loaded data has more columns than current one: add more columns
+			if len(new_data[0]) > len(old_data[0]):
+				diff = len(new_data[0]) - len(old_data[0])
+				MapEditor.MAPWIDTH += diff * MapEditor.TILESIZE
+
+			# Loaded data has fewer rows than current map: remove rows
+			if len(new_data) < len(old_data):
+				diff = len(old_data) - len(new_data)
+				MapEditor.MAPHEIGHT -= diff * MapEditor.TILESIZE
+
+			# Loaded data has fewer columns than current map: remove columns
+			if len(new_data[0]) < len(old_data[0]):
+				diff = len(old_data[0]) - len(new_data[0])
+				MapEditor.MAPWIDTH -= diff * MapEditor.TILESIZE
+
+			self.my_metadata = new_data
+
+		# Load map and clear screen
+		self.my_map = pygame.image.load(os.path.join(os.path.dirname(__file__), 'map.jpeg'))
+		self.screen.fill((0, 0, 0))
+
+		# Update camera
+		self.camera.setup(self.screen.get_size(), self.my_map.get_size())
 
 	def clear(self):
 		self.my_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
 		self.metadata = [[0] * (self.my_map.get_width() / MapEditor.TILESIZE) for i in range(self.my_map.get_height() / MapEditor.TILESIZE)]
+
+	def insert_row(self):
+		MapEditor.MAPHEIGHT += MapEditor.TILESIZE
+
+		# Update map
+		new_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
+		new_map.blit(self.my_map, (0, 0))
+		self.my_map = new_map
+
+		# Update metadata
+		new_metadata = [[0] * (self.my_map.get_width() / MapEditor.TILESIZE) for i in range(self.my_map.get_height() / MapEditor.TILESIZE)]
+
+		for i in range(len(self.my_metadata)):
+			new_metadata[i] = self.my_metadata[i]
+		self.my_metadata = new_metadata
+
+		# Update camera
+		self.camera.setup(self.screen.get_size(), self.my_map.get_size())
+
+	def insert_column(self):
+		MapEditor.MAPWIDTH += MapEditor.TILESIZE
+
+		# Update map
+		new_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
+		new_map.blit(self.my_map, (0, 0))
+		self.my_map = new_map
+
+		# Update metadata
+		new_metadata = [[0] * (self.my_map.get_width() / MapEditor.TILESIZE) for i in range(self.my_map.get_height() / MapEditor.TILESIZE)]
+
+		for i in range(len(self.my_metadata)):
+			for j in range(len(self.my_metadata[i])):	
+				new_metadata[i][j] = self.my_metadata[i][j]
+		self.my_metadata = new_metadata
+
+		# Update camera
+		self.camera.setup(self.screen.get_size(), self.my_map.get_size())
+
+	def delete_row(self):
+		MapEditor.MAPHEIGHT -= MapEditor.TILESIZE
+
+		# Update map
+		row_to_delete = pygame.Rect(0, MapEditor.MAPHEIGHT, MapEditor.MAPWIDTH, MapEditor.TILESIZE)
+		self.my_map.fill((0, 0, 0), row_to_delete)
+		self.draw()
+
+		new_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
+		new_map.blit(self.my_map, (0, 0))
+		self.my_map = new_map
+
+		# Update metadata
+		new_metadata = [[0] * (self.my_map.get_width() / MapEditor.TILESIZE) for i in range(self.my_map.get_height() / MapEditor.TILESIZE)]
+
+		for i in range(len(new_metadata)):
+			new_metadata[i] = self.my_metadata[i]
+		self.my_metadata = new_metadata
+
+		# Update camera
+		self.camera.setup(self.screen.get_size(), self.my_map.get_size())
+		self.camera.move(0, -1)
+
+	def delete_column(self):
+		MapEditor.MAPWIDTH -= MapEditor.TILESIZE
+
+		# Update map
+		column_to_delete = pygame.Rect(MapEditor.MAPWIDTH, 0, MapEditor.TILESIZE, MapEditor.MAPHEIGHT)
+		self.my_map.fill((0, 0, 0), column_to_delete)
+		self.draw()
+
+		new_map = pygame.Surface((MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT))
+		new_map.blit(self.my_map, (0, 0))
+		self.my_map = new_map
+
+		# Update metadata
+		new_metadata = [[0] * (self.my_map.get_width() / MapEditor.TILESIZE) for i in range(self.my_map.get_height() / MapEditor.TILESIZE)]
+
+		for i in range(len(new_metadata)):
+			for j in range(len(new_metadata[i])):
+				new_metadata[i][j] = self.my_metadata[i][j]
+		self.my_metadata = new_metadata
+
+		# Update camera
+		self.camera.setup(self.screen.get_size(), self.my_map.get_size())
+		self.camera.move(-1, 0)
 
 	def process_events(self):
 		for event in pygame.event.get():
@@ -191,6 +314,22 @@ class MapEditor:
 				# Q - prev tileset
 				elif event.key == pygame.K_q:
 					self.prev_tileset()
+
+				# 9 - insert row
+				elif event.key == pygame.K_9:
+					self.insert_row()	
+
+				# 7 - insert column
+				elif event.key == pygame.K_7:
+					self.insert_column()	
+
+				# 0 - delete row
+				elif event.key == pygame.K_0:
+					self.delete_row()	
+
+				# 8 - delete column
+				elif event.key == pygame.K_8:
+					self.delete_column()			
 
 				# K - save
 				elif event.key == pygame.K_k:

@@ -6,9 +6,9 @@ import os
 import sys
 
 
-top = 5
-curr = 0
-
-print((curr - 1) % 5)
-
+old = [0, 1, 2, 3]
+new = [5, 7, 3, 3, 7, 8, 6, 1]
+diff = len(new) - len(old)
+tent = new[:-diff]
+print(tent)
 
