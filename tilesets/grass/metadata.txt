@@ -1,0 +1,6 @@
+grass_0.png GRASS
+grass_1.png GRASS
+grass_2.png GRASS
+grass_3.png GRASS
+grass_4.png GRASS
+grass_5.png GRASS

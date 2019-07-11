@@ -1,0 +1,9 @@
+water_grass_bottom_0.png WATER
+water_grass_bottomleft_0.png WATER
+water_grass_bottomright_0.png WATER
+water_grass_left_0.png WATER
+water_grass_right_0.png WATER
+water_grass_top_0.png WATER
+water_grass_topleft_0.png WATER
+water_grass_topright_0.png WATER
+water_mid_0.png DEATH

@@ -1,0 +1,6 @@
+casa_0.png CASA	 BOTTOM_LEFT
+casa_1.png CASA MID_BOTTOM
+casa_2.png CASA BOTTOM_RIGHT
+casa_3.png CASA TOP_LEFT
+casa_4.png CASA MID_TOP
+casa_5.png CASA TOP_RIGHT

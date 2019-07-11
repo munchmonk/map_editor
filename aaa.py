@@ -3,6 +3,7 @@
 
 """ 
 	NEXT UP:
+	---
 
 	TODO:
 	potentially allow for manual metadata override
@@ -32,8 +33,8 @@ class Camera:
 		self.maxheight = -(map_size[1] - screen_size[1]) if map_size[1] > screen_size[1] else 0
 
 	def move(self, x, y):
-		self.pos[0] -= x * 40
-		self.pos[1] -= y * 40
+		self.pos[0] -= x * MapEditor.TILESIZE
+		self.pos[1] -= y * MapEditor.TILESIZE
 
 		if self.pos[0] > 0:
 			self.pos[0] = 0
@@ -92,7 +93,7 @@ class Util:
 							tot_entries += 1
 					
 					# Sanity check #1 - numbers of tiles and entries in the metadata file must match
-					tot_tiles = len([tile for tile in os.listdir(subfolder) if tile[-4:] == '.jpg'])
+					tot_tiles = len([tile for tile in os.listdir(subfolder) if tile[-4:] == '.png'])
 					if tot_tiles > tot_entries:
 						print('ERROR: not enough metadata entries for tileset {}. Aborting.'.format(subfolder))
 						self.quit()
@@ -102,6 +103,7 @@ class Util:
 						
 			except IOError:
 				print('Error: no metadata file for tileset {}. Aborting.'.format(subfolder))
+				self.quit()
 
 			# Replaces the file names with the actual images
 			for entry in tileset:
@@ -113,12 +115,13 @@ class Util:
 					self.quit()
 
 			tilesets.append(tileset)
+			print('Loaded {} successfully.'.format(subfolder))
 
 		return tilesets
 
 	def initialise_blank_tile(self):
 		folder_path = os.path.dirname(__file__)
-		img_path = os.path.join(folder_path, "blank.jpg")
+		img_path = os.path.join(folder_path, 'blank.png')
 		return pygame.image.load(img_path)
 
 	def quit(self):
@@ -132,17 +135,17 @@ class Util:
 
 
 class MapEditor:
-	TILESIZE = 40
-	SCREENWIDTH = TILESIZE * 7
-	SCREENHEIGHT = TILESIZE * 7
-	MAPWIDTH = TILESIZE * 6
-	MAPHEIGHT = TILESIZE * 6
+	TILESIZE = 32
+	SCREENWIDTH = TILESIZE * 15
+	SCREENHEIGHT = TILESIZE * 15
+	MAPWIDTH = TILESIZE * 45
+	MAPHEIGHT = TILESIZE * 30
 	FPS = 90
 
 	def __init__(self):
 		pygame.init()
-		self.screen = pygame.display.set_mode((MapEditor.SCREENWIDTH, MapEditor.SCREENHEIGHT))
-		# self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+		# self.screen = pygame.display.set_mode((MapEditor.SCREENWIDTH, MapEditor.SCREENHEIGHT))
+		self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 		
 		self.util = Util()
 		
@@ -190,7 +193,7 @@ class MapEditor:
 		self.curr_tile = self.curr_tileset[self.curr_tile_index][0]
 
 	def save(self):
-		pygame.image.save(self.my_map, os.path.join(os.path.dirname(__file__), 'map.jpeg'))
+		pygame.image.save(self.my_map, os.path.join(os.path.dirname(__file__), 'map.png'))
 		with open(os.path.join(os.path.dirname(__file__), 'metadata.p'), 'wb') as out_file:
 			pickle.dump(self.my_metadata, out_file)
 
@@ -225,7 +228,7 @@ class MapEditor:
 			self.my_metadata = new_data
 
 		# Load map and clear screen
-		self.my_map = pygame.image.load(os.path.join(os.path.dirname(__file__), 'map.jpeg'))
+		self.my_map = pygame.image.load(os.path.join(os.path.dirname(__file__), 'map.png'))
 		self.screen.fill((0, 0, 0))
 
 		# Update camera

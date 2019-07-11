@@ -1,3 +1,0 @@
-tile1.jpg BLUE
-tile2.jpg GRASS
-rosso.jpg FIRE
