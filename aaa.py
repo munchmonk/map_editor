@@ -105,10 +105,11 @@ class Util:
 				print('Error: no metadata file for tileset {}. Aborting.'.format(subfolder))
 				self.quit()
 
-			# Replaces the file names with the actual images
+			# Insert the actual image at the beginning of the list - N.B.: the list will be [actual image, 'image.png', OPTIONAL_TAG_1, OPTIONAL_TAG_2, etc.]
 			for entry in tileset:
 				try:
-					entry[0] = pygame.image.load(os.path.join(subfolder, entry[0]))
+					entry.insert(0, pygame.image.load(os.path.join(subfolder, entry[0])))
+
 				except pygame.error:
 					# Sanity check #2: all entries in the metadata file must correspond to a tile
 					print('ERROR: no tile found matching metadata entry {}. Aborting.'.format(entry[0]))
@@ -138,14 +139,14 @@ class MapEditor:
 	TILESIZE = 32
 	SCREENWIDTH = TILESIZE * 15
 	SCREENHEIGHT = TILESIZE * 15
-	MAPWIDTH = TILESIZE * 45
-	MAPHEIGHT = TILESIZE * 30
+	MAPWIDTH = TILESIZE * 7
+	MAPHEIGHT = TILESIZE * 5
 	FPS = 90
 
 	def __init__(self):
 		pygame.init()
-		# self.screen = pygame.display.set_mode((MapEditor.SCREENWIDTH, MapEditor.SCREENHEIGHT))
-		self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+		self.screen = pygame.display.set_mode((MapEditor.SCREENWIDTH, MapEditor.SCREENHEIGHT))
+		# self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 		
 		self.util = Util()
 		
@@ -408,7 +409,10 @@ class MapEditor:
 
 			self.my_map.blit(self.curr_tile, coord)
 			x, y = self.util.coord_to_index(coord)
-			self.my_metadata[y][x] = self.curr_tileset[self.curr_tile_index][1:]
+
+			# The commented line saves ALL metadata for the curren tile. The uncommented one only saves the file name (e.g. tile.png instead of [tile.png, WATER])
+			# self.my_metadata[y][x] = self.curr_tileset[self.curr_tile_index][1:]
+			self.my_metadata[y][x] = self.curr_tileset[self.curr_tile_index][1]
 
 		# Right click - erase
 		elif pygame.mouse.get_pressed()[2]:
