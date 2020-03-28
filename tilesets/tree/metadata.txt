@@ -1,0 +1,8 @@
+tree_top_0.png TREE TOP TOP_LAYER
+tree_top_1.png TREE TOP TOP_LAYER
+tree_top_2.png TREE TOP TOP_LAYER
+tree_top_3.png TREE TOP TOP_LAYER
+tree_bottom_0.png TREE BOTTOM
+tree_bottom_1.png TREE BOTTOM
+tree_bottom_2.png TREE BOTTOM
+tree_bottom_3.png TREE BOTTOM

@@ -6,4 +6,13 @@ water_grass_right_0.png WATER
 water_grass_top_0.png WATER
 water_grass_topleft_0.png WATER
 water_grass_topright_0.png WATER
-water_mid_0.png DEATH
+water_mid_0.png WATER
+water_grass_bottom_1.png WATER
+water_grass_bottomleft_1.png WATER
+water_grass_bottomright_1.png WATER
+water_grass_left_1.png WATER
+water_grass_right_1.png WATER
+water_grass_top_1.png WATER
+water_grass_topleft_1.png WATER
+water_grass_topright_1.png WATER
+water_mid_1.png WATER

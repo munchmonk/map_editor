@@ -137,8 +137,8 @@ class Util:
 
 class MapEditor:
 	TILESIZE = 32
-	SCREENWIDTH = TILESIZE * 15
-	SCREENHEIGHT = TILESIZE * 15
+	SCREENWIDTH = TILESIZE * 22
+	SCREENHEIGHT = TILESIZE * 22
 	MAPWIDTH = TILESIZE * 7
 	MAPHEIGHT = TILESIZE * 5
 	FPS = 90
@@ -410,7 +410,7 @@ class MapEditor:
 			self.my_map.blit(self.curr_tile, coord)
 			x, y = self.util.coord_to_index(coord)
 
-			# The commented line saves ALL metadata for the curren tile. The uncommented one only saves the file name (e.g. tile.png instead of [tile.png, WATER])
+			# The commented line saves ALL metadata for the current tile. The uncommented one only saves the file name (e.g. tile.png instead of [tile.png, WATER])
 			# self.my_metadata[y][x] = self.curr_tileset[self.curr_tile_index][1:]
 			self.my_metadata[y][x] = self.curr_tileset[self.curr_tile_index][1]
 
