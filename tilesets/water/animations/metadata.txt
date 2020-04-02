@@ -1,0 +1,9 @@
+water_bottom_1.png WATER
+water_bottomleft_1.png WATER
+water_bottomright_1.png WATER
+water_left_1.png WATER
+water_right_1.png WATER
+water_top_1.png WATER
+water_topleft_1.png WATER
+water_topright_1.png WATER
+water_mid_1.png WATER
